@@ -7,4 +7,5 @@ export * from "./schemas/email.ts";
 export * from "./schemas/number.ts";
 export * from "./schemas/numericString.ts";
 export * from "./schemas/object.ts";
+export * from "./schemas/union.ts";
 export * from "./schemas/string.ts";

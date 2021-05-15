@@ -30,6 +30,7 @@ supports [Node.js](https://nodejs.org/), [TypeScript](https://www.typescriptlang
     * [email](#email)
     * [array](#array)
     * [object](#object)
+    * [union](#union)
 * [Changelog](#changelog)
 
 - - -
@@ -219,11 +220,10 @@ The `ValueSchemaError` object represents an error.
 ```typescript
 export interface ValueSchemaError extends Error
 {
-    name: string
-    message: string
-    cause: string
-    value: any
-    keyStack: (string | number)[]
+    readonly cause: string;
+    readonly value: unknown;
+    readonly keyStack: (string | number)[];
+    readonly unionErrors: ValueSchemaError[];
 
     /**
      * check whether error is instance of ValueSchemaError or not
@@ -243,6 +243,7 @@ export interface ValueSchemaError extends Error
 |`cause`|cause of error; see [`CAUSE`](#cause)|
 |`value`|value to apply|
 |`keyStack`|array consists of path to key name(for object) or index(for array) that caused error; for nested object or array|
+|`unionErrors`|array of `ValueSchemaError` instances from `union()`; used only in `union()` error|
 
 See below example.
 For detail about schema / `value-schema`, see [basic usage](#basic-usage)
@@ -2192,6 +2193,59 @@ assert.deepStrictEqual(
 assert.throws(
     () => vs.object({converter: (value, fail) => fail()}).applyTo({}),
     {name: "ValueSchemaError", cause: vs.CAUSE.CONVERTER});
+```
+
+### union
+
+This schema creates a new schema **from other schemas**.
+The new schema matches any one of old schemas.
+
+It might be useful for login form, such as "Input email or username".
+
+#### ambient declarations
+
+```typescript
+export function object<T>(...schemas: BaseSchema<T>): UnionSchema<T>;
+
+type ErrorHandler<T> = (err: ValueSchemaError) => T | null | never;
+interface UnionSchema<T> {
+    applyTo(value: unknown, onError?: ErrorHandler<T>): T | null
+}
+```
+
+#### `applyTo(value[, onError])`
+
+Applies schema to `value`.
+
+If an error occurs, this method calls `onError` (if specified) or throw `ValueSchemaError` (otherwise).
+
+```javascript
+// should be OK
+assert.strictEqual(
+    vs.union(vs.number(), vs.string()).applyTo(1),
+    1);
+assert.strictEqual(
+    vs.union(vs.number(), vs.string()).applyTo("a"),
+    "a");
+assert.strictEqual(
+    vs.union(vs.boolean(), vs.number(), vs.string()).applyTo(true),
+    true);
+assert.strictEqual(
+    vs.union(vs.email(), vs.string({pattern: /^\w+$/})).applyTo("user@example.com"),
+    "user@example.com");
+
+// should be adjusted
+assert.strictEqual(
+    vs.union(vs.number(), vs.string()).applyTo("1"),
+    1);
+assert.strictEqual(
+    vs.union(vs.string(), vs.number()).applyTo("1"), // this won't be adjusted. be careful of schemas order!
+    "1");
+
+// should cause error
+assert.throws(
+    () => vs.union(vs.number(), vs.string()).applyTo({}),
+    {name: "ValueSchemaError", cause: vs.CAUSE.UNION});
 ```
 
 ## Changelog

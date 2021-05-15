@@ -11,7 +11,8 @@ export enum CAUSE {
     MIN_LENGTH = "min-length",
     MAX_LENGTH = "max-length",
     PATTERN = "pattern",
-    CHECKSUM = "checksum"
+    CHECKSUM = "checksum",
+    UNION = "union"
 }
 /**
  * Value-Schema Error
@@ -20,6 +21,7 @@ export class ValueSchemaError extends Error {
     public readonly cause: CAUSE;
     public readonly value: unknown;
     public readonly keyStack: Key[];
+    public readonly unionErrors: ValueSchemaError[];
     /**
      * throw an error
      * @param cause cause of error
@@ -50,5 +52,6 @@ export class ValueSchemaError extends Error {
         this.cause = cause;
         this.value = value;
         this.keyStack = [...keyStack];
+        this.unionErrors = [];
     }
 }

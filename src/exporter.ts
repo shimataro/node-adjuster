@@ -7,4 +7,5 @@ export * from "./schemas/email";
 export * from "./schemas/number";
 export * from "./schemas/numericString";
 export * from "./schemas/object";
+export * from "./schemas/union";
 export * from "./schemas/string";

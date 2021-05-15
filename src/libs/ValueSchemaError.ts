@@ -17,6 +17,8 @@ export enum CAUSE
 	PATTERN = "pattern",
 
 	CHECKSUM = "checksum",
+
+	UNION = "union",
 }
 
 /**
@@ -27,6 +29,7 @@ export class ValueSchemaError extends Error
 	public readonly cause: CAUSE;
 	public readonly value: unknown;
 	public readonly keyStack: Key[];
+	public readonly unionErrors: ValueSchemaError[];
 
 	/**
 	 * throw an error
@@ -64,5 +67,6 @@ export class ValueSchemaError extends Error
 		this.cause = cause;
 		this.value = value;
 		this.keyStack = [...keyStack];
+		this.unionErrors = [];
 	}
 }
